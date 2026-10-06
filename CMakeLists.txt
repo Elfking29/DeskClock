@@ -62,4 +62,3 @@ target_include_directories(DeskClock PRIVATE
 )
 
 pico_add_extra_outputs(DeskClock)
-

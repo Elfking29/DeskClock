@@ -51,6 +51,7 @@ pico_enable_stdio_usb(DeskClock 1)
 # Add the standard library to the build
 target_link_libraries(DeskClock
         pico_stdlib
+        pico_rand
         hardware_i2c
 )
 

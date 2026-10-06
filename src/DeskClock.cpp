@@ -67,27 +67,25 @@ int main(){
         // year, mon, mday, hour, min, sec, wday
         // Display Updates
         time=rtc.get_time();
-        if (updisp+30000<elapsed||screen==nullptr){
+        if (updisp+5000<elapsed||screen==nullptr){
             if ((time[3]>6&&time[3]<23)||usb.connected()){lcd.backlight(true);}
             else{lcd.backlight(false);}
-            while (true){
-                screen=screens[get_rand_32()%screens.size()];
-                if (screen->check()){
-                    if (oldscreen!=screen){
-                        oldscreen=screen;
-                        lcd.clear();
-                        screen->setup();
-                    }
-                    update=61;
-                    updisp=elapsed;
-                    break;
+            screen=screens[get_rand_32()%screens.size()];
+            if (screen->check()){
+                if (oldscreen!=screen){
+                    oldscreen=screen;
+                    lcd.clear();
+                    screen->setup();
                 }
+                update=61;
+                updisp=elapsed;
             }
+            else{screen=nullptr;}
         }
         if (update!=time[5]){
             update=time[5];
             seg.print(padtwo(time[3])+padtwo(time[4]),1-time[5]%2);
-            screen->display();
+            if (screen!=nullptr){screen->display();}
         }
 
         // Connection Management
@@ -98,16 +96,16 @@ int main(){
             }
 
             if (watchdog+5000<elapsed){
-                usb.disconnect();
                 for (Screen* s:screens){s->disconnect();}
+                usb.disconnect();
                 screen=nullptr;
             }
 
             line=usb.readline();
             if (line=="ALIVE"){watchdog=elapsed;usb.send("PET");}
-            //else if (line.substr(0,11)=="///STATS///"){screens[3]->update(line);}
+            else if (line.substr(0,11)=="///STATS///"){screens[3]->update(line);}
             else if (line!=""){
-                usb.send(line);
+                //usb.send(line);
             }
         }
         else{

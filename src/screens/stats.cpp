@@ -21,17 +21,17 @@ void Stats::setup(){
 
 void Stats::update(std::string key){
     key.erase(0,11);
-    std::string delim = "///STATS///";
+    std::string delim = "///SPLIT///";
     std::string sub;
     size_t pos;
     int i=0;
-    while ((pos=key.find(delim)!=std::string::npos)){
+    while ((pos=key.find(delim))!=std::string::npos){
         if (i>4){disconnect();return;}
         sub=key.substr(0,pos);
         auto result=std::from_chars(sub.data(),sub.data()+sub.size(),stats[i]);
         if (result.ec!=std::errc()||result.ptr!=sub.data()+sub.size())
             {disconnect();return;}
-        key.erase(pos+delim.length());
+        key.erase(0,pos+delim.length());
         i++;
     }
     if (i!=5){disconnect();}

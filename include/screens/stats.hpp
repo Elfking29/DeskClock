@@ -9,9 +9,10 @@ class Stats : public Screen {
 private:
     std::array<int,5> stats={-1,-1,-1,-1,-1};
 
-    std::string bar(uint percent, uint cells, uint slot);
+    std::string bar(uint percent, uint cells, uint slot, bool mini=false);
     std::string pad(std::string m, uint l, char c=' ');
     std::string padtwo(int num);
+    std::size_t codes(const std::string& text);
 public:
     Stats(DS1306& rtc, PCF8574& lcd);
 

@@ -37,16 +37,23 @@ void Stats::update(std::string key){
     if (i!=5){disconnect();}
 }
 
-std::string Stats::bar(uint percent, uint cells, uint slot){
+std::string Stats::bar(uint percent, uint cells, uint slot, bool mini){
     if (slot<1||slot>4){return std::string(cells,' ');}
     percent=percent>100?100:percent;
     uint pixels=(cells-2)*5;
     uint total=static_cast<uint>(0.5+percent*(pixels/100.0));
     std::string sndstr="@7";
     for (int i=0; i<total/5; i++){sndstr+="@5";}
-    if (total%5){
-        uint v = total%5?32-(16>>(total%5-1)):0;
-        lcd.create_char(slot,{31,v,v,v,v,v,v,31});
+    if (total%(mini?30:5)){
+        if (!mini){
+            uint v = total%5?32-(16>>(total%5-1)):0;
+            lcd.create_char(slot,{31,v,v,v,v,v,v,31});
+        }
+        else{
+            uint v[6]={0};
+            for (int i=0; i<total%30; i++){v[5-(i%6)]|=16>>i/6;}
+            lcd.create_char(slot,{31,v[0],v[1],v[2],v[3],v[4],v[5],31});
+        }
         sndstr+="@"+std::to_string(slot);
     }
     while (sndstr.size()/2<cells-1){sndstr+="@0";}
@@ -55,9 +62,29 @@ std::string Stats::bar(uint percent, uint cells, uint slot){
     return sndstr;
 }
 
-std::string Stats::pad(std::string m, uint l, char c){
-    if (m.size()>=l){return m.substr(0,l);}
-    return m+std::string(l-m.size(),c);
+// year, mon, mday, hour, min, sec, wday
+void Stats::display(){
+    std::array <uint,7> t = rtc.get_time();
+    lcd.create_char(4,{14,14-4*(t[5]%2),14,0,14,14-4*(t[5]%2),14,0});
+    char chg = stats[4]?'+':'-';
+    std::string clock=padtwo(t[3])+"@4"+padtwo(t[4])+"@4"+padtwo(t[5]);
+    std::string sndstr="BAT: "+pad(std::to_string(stats[3])+"%",5)+chg+clock;
+    sndstr=pad(sndstr,20+codes(sndstr));
+    sndstr+="CPU: "+pad(std::to_string(stats[0])+"%",4)+bar(stats[0],11,1);
+    sndstr+="RAM: "+pad(std::to_string(stats[1])+"%",4)+bar(stats[1],11,1);
+    sndstr+="DSK: "+pad(std::to_string(stats[2])+"%",4)+bar(stats[2],11,1);
+    lcd.home();
+    lcd.lprint(sndstr);
+}
+
+std::size_t Stats::codes(const std::string& text) {
+    std::size_t count = 0;
+    for (std::size_t i = 0; i + 1 < text.size(); ++i) {
+        if (text[i] == '@' && text[i + 1] >= '0' && text[i + 1] <= '9') {
+            ++count;
+        }
+    }
+    return count;
 }
 
 std::string Stats::padtwo(int num) {
@@ -66,16 +93,7 @@ std::string Stats::padtwo(int num) {
     return std::to_string(num);
 }
 
-// year, mon, mday, hour, min, sec, wday
-void Stats::display(){
-    std::array <uint,7> t = rtc.get_time();
-    lcd.create_char(4,{14,14-4*(t[5]%2),14,0,14,14-4*(t[5]%2),14,0});
-    char chg = stats[4]?'+':'-';
-    std::string clock=padtwo(t[3])+"@4"+padtwo(t[4])+"@4"+padtwo(t[5]);
-    std::string sndstr=pad("BAT: "+pad(std::to_string(stats[3])+"%",5)+std::to_string(chg)+clock,20);
-    sndstr+="CPU: "+pad(std::to_string(stats[0])+"%",4)+bar(stats[0],11,1);
-    sndstr+="RAM: "+pad(std::to_string(stats[1])+"%",4)+bar(stats[1],11,1);
-    sndstr+="DSK: "+pad(std::to_string(stats[2])+"%",4)+bar(stats[2],11,1);
-    lcd.home();
-    lcd.lprint(sndstr);
+std::string Stats::pad(std::string m, uint l, char c){
+    if (m.size()>=l){return m.substr(0,l);}
+    return m+std::string(l-m.size(),c);
 }

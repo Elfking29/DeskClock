@@ -15,6 +15,7 @@
 #include "analog.hpp"
 #include "life.hpp"
 #include "stats.hpp"
+#include "music.hpp"
 
 std::string padtwo(int num) {
     if (num < 10)
@@ -36,15 +37,15 @@ int main(){
     Analog analog(rtc, lcd);
     Life life(rtc, lcd);
     Stats stats(rtc, lcd);
-    //Music music(rtc, lcd);
+    Music music(rtc, lcd);
     //Weather weather(rtc, lcd);
 
-    std::array<Screen*, 4> screens = {
+    std::array<Screen*, 5> screens = {
         &digital,
         &analog,
         &life,
-        &stats
-        //&music,
+        &stats,
+        &music,
         //&weather
     };
     
@@ -56,6 +57,7 @@ int main(){
     std::string line;
     uint64_t update=61;
     uint64_t updisp=0; 
+    int rand=0;
     uint64_t watchdog=0;
     uint64_t poke=0;
     uint64_t elapsed;
@@ -67,14 +69,17 @@ int main(){
         // year, mon, mday, hour, min, sec, wday
         // Display Updates
         time=rtc.get_time();
-        if (updisp+5000<elapsed||screen==nullptr){
+        if (updisp+rand+30000<elapsed||screen==nullptr){
             if ((time[3]>6&&time[3]<23)||usb.connected()){lcd.backlight(true);}
             else{lcd.backlight(false);}
             screen=screens[get_rand_32()%screens.size()];
             if (screen->check()){
+                rand=static_cast<int>(get_rand_32()%7)-3;
                 if (oldscreen!=screen){
                     oldscreen=screen;
                     lcd.clear();
+                    lcd.print(std::string(80,'\xFF'));
+                    lcd.print(std::string(80,' '));
                     screen->setup();
                 }
                 update=61;
@@ -104,6 +109,7 @@ int main(){
             line=usb.readline();
             if (line=="ALIVE"){watchdog=elapsed;usb.send("PET");}
             else if (line.substr(0,11)=="///STATS///"){screens[3]->update(line);}
+            else if (line.substr(0,11)=="///MUSIC///"){screens[4]->update(line);}
             else if (line!=""){
                 //usb.send(line);
             }

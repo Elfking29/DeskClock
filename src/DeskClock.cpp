@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/rand.h"
+#include "hardware/watchdog.h"
+#include "pico/cyw43_arch.h"
 #include <array>
 #include <string>
 
@@ -25,6 +27,10 @@ std::string padtwo(int num) {
 
 int main(){
     stdio_init_all();
+    watchdog_enable(10000, true);
+    cyw43_arch_init();
+
+
 
     // Drivers
     COMMS usb;
@@ -61,17 +67,21 @@ int main(){
     uint64_t watchdog=0;
     uint64_t poke=0;
     uint64_t elapsed;
+    bool led=false;
+    bool wreset=watchdog_caused_reboot();
+    uint64_t ledt=0;
     
     while (true){
         sleep_ms(10);
         elapsed=time_us_64()/1000;
+        watchdog_update();
 
         // year, mon, mday, hour, min, sec, wday
         // Display Updates
         time=rtc.get_time();
         if (updisp+rand+30000<elapsed||screen==nullptr){
-            if ((time[3]>6&&time[3]<23)||usb.connected()){lcd.backlight(true);}
-            else{lcd.backlight(false);}
+            if ((time[3]>6&&time[3]<23)||usb.connected()){lcd.backlight(true);seg.set_brightness(1);}
+            else{lcd.backlight(false);seg.set_brightness(0);}
             screen=screens[get_rand_32()%screens.size()];
             if (screen->check()){
                 rand=static_cast<int>(get_rand_32()%7)-3;
@@ -124,6 +134,16 @@ int main(){
                 watchdog=elapsed;
                 poke=0;
             }
+        }
+
+        // LED Stuff
+        if (ledt+(usb.connected()?250:1000)<elapsed){
+            ledt=elapsed;
+            if (wreset){
+                led=!led;
+                cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led);
+            }
+            else {cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, usb.connected());}
         }
     }
     return 0;

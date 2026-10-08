@@ -53,6 +53,7 @@ target_link_libraries(DeskClock
         pico_stdlib
         pico_rand
         hardware_i2c
+        pico_cyw43_arch_none
 )
 
 # Add the standard include files to the build

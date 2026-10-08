@@ -10,20 +10,33 @@
 COMMS::COMMS():con(false),buffer(""),time({0,0,0,0,0,0,0}){}
 
 bool COMMS::connected(){return con;}
-void COMMS::disconnect(){con=false;}
+
+void COMMS::disconnect(){
+    while (getchar_timeout_us(0) != PICO_ERROR_TIMEOUT);
+    buffer.clear();
+    con=false;
+}
 
 void COMMS::send(const std::string& str){printf("%s\n", str.c_str());}
 void COMMS::send(const char* str){printf("%s\n", str);}
 
 std::string COMMS::readline(){
+    uint bytes=0;
     while (true){
         int c=getchar_timeout_us(0);
         if (c==PICO_ERROR_TIMEOUT){break;}
-        else {buffer+=static_cast<char>(c);}
+        else {
+            if (bytes>=1024||buffer.size()>=1024)
+                {buffer.clear();return "";}
+            buffer+=static_cast<char>(c);
+            bytes++;
+        }
     }
     std::string str;
     for (int i=0; i<buffer.length(); i++){
-        if (buffer[i]!='\n'){str+=static_cast<char>(buffer[i]);}
+        if (buffer[i]!='\n'){
+            str+=static_cast<char>(buffer[i]);
+        }
         else{
             buffer.erase(0,str.length()+1);
             return str;
@@ -44,12 +57,14 @@ void COMMS::connect(){
         int i=0;
         while ((pos=line.find(delim))!=std::string::npos){
             if (i>=7){
+                buffer.clear();
                 rtrars();
                 return;
             }
             std::string sub=line.substr(0,pos);
             auto result=std::from_chars(sub.data(),sub.data()+sub.size(),time[i]);
             if (result.ec!=std::errc()||result.ptr!=sub.data()+sub.size()){
+                buffer.clear();
                 rtrars();
                 return;
             }
@@ -57,6 +72,7 @@ void COMMS::connect(){
             i++;
         }
         if (i!=7){
+            buffer.clear();
             rtrars();
             return;
         }

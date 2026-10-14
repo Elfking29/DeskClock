@@ -13,7 +13,7 @@ void Analog::setup() {}
 
 void Analog::disconnect() {}
 
-void Analog::update(std::string key){}
+void Analog::update(std::string& key){return;}
 
 void Analog::display() {
     std::array <uint,7> t = rtc.get_time();

@@ -18,7 +18,7 @@ void Life::setup() {
 
 void Life::disconnect() {}
 
-void Life::update(std::string key){}
+void Life::update(std::string& key){return;}
 
 uint Life::randint(uint l, uint h){return get_rand_32()%(h-l+1)+l;}
 
@@ -108,5 +108,5 @@ void Life::display(){
             }
         }       
     }
-    if (repeat>2){randSet(randint(lw, hi));}
+    if (repeat>2){randSet(randint(lw, hi));}    
 }

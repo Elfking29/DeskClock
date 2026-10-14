@@ -31,7 +31,8 @@ void Music::disconnect(){
     mtc={0,0,0};
 }
 
-void Music::update(std::string key){
+void Music::update(std::string& key){
+    if (key.substr(0,11)!="///MUSIC///"){return;}
     key.erase(0,11);
     std::string delim = "///SPLIT///";
     std::string sub;

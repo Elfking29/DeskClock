@@ -15,6 +15,6 @@ public:
     bool check() override;
     void setup() override;
     void disconnect() override;
-    void update(std::string key) override;
+    void update(std::string& key) override;
     void display() override;
 };

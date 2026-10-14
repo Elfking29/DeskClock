@@ -21,7 +21,7 @@ void Digital::setup() {
 
 void Digital::disconnect() {}
 
-void Digital::update(std::string key){}
+void Digital::update(std::string& key){return;}
 
 void Digital::display() {
     std::array <uint,7> t = rtc.get_time();

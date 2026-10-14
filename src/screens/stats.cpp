@@ -19,7 +19,8 @@ void Stats::setup(){
     lcd.create_char(7,{ 1, 1, 1, 1, 1, 1, 1, 1});  
 }
 
-void Stats::update(std::string key){
+void Stats::update(std::string& key){
+    if (key.substr(0,11)!="///STATS///"){return;}
     key.erase(0,11);
     std::string delim = "///SPLIT///";
     std::string sub;

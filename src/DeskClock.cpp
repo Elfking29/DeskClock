@@ -18,6 +18,8 @@
 #include "life.hpp"
 #include "stats.hpp"
 #include "music.hpp"
+#include "weather.hpp"
+#include "rss.hpp"
 
 std::string padtwo(int num) {
     if (num < 10)
@@ -44,15 +46,17 @@ int main(){
     Life life(rtc, lcd);
     Stats stats(rtc, lcd);
     Music music(rtc, lcd);
-    //Weather weather(rtc, lcd);
+    Weather weather(rtc, lcd);
+    Rss rss(rtc, lcd);
 
-    std::array<Screen*, 5> screens = {
+    std::array<Screen*, 7> screens = {
         &digital,
         &analog,
         &life,
         &stats,
         &music,
-        //&weather
+        &weather,
+        &rss
     };
     
     Screen* screen = nullptr;
@@ -61,6 +65,7 @@ int main(){
     // Variables
     std::array<uint,7> time;
     std::string line;
+    std::string sub;
     uint64_t update=61;
     uint64_t updisp=0; 
     int rand=0;
@@ -79,7 +84,7 @@ int main(){
         // year, mon, mday, hour, min, sec, wday
         // Display Updates
         time=rtc.get_time();
-        if (updisp+rand+30000<elapsed||screen==nullptr){
+        if (updisp+rand+30*1000<elapsed||screen==nullptr){
             if ((time[3]>6&&time[3]<23)||usb.connected()){lcd.backlight(true);seg.set_brightness(1);}
             else{lcd.backlight(false);seg.set_brightness(0);}
             screen=screens[get_rand_32()%screens.size()];
@@ -97,6 +102,7 @@ int main(){
             }
             else{screen=nullptr;}
         }
+
         if (update!=time[5]){
             update=time[5];
             seg.print(padtwo(time[3])+padtwo(time[4]),1-time[5]%2);
@@ -118,12 +124,11 @@ int main(){
 
             line=usb.readline();
             if (line=="ALIVE"){watchdog=elapsed;usb.send("PET");}
-            else if (line.substr(0,11)=="///STATS///"){screens[3]->update(line);}
-            else if (line.substr(0,11)=="///MUSIC///"){screens[4]->update(line);}
-            else if (line!=""){
-                //usb.send(line);
+            else if (line.size()>=11 && line.compare(0,3,"///")==0 && line.compare(8,3,"///")==0){
+                for (size_t i=0; i<screens.size(); i++){screens[i]->update(line);}
             }
         }
+
         else{
             usb.connect();
             time=usb.rtrars();
@@ -146,5 +151,6 @@ int main(){
             else {cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, usb.connected());}
         }
     }
+
     return 0;
 }

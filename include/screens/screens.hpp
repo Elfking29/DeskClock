@@ -13,6 +13,6 @@ public:
     virtual bool check() = 0;
     virtual void setup() = 0;
     virtual void disconnect() = 0;
-    virtual void update(std::string key) = 0;
+    virtual void update(std::string& key) = 0;
     virtual void display() = 0;
 };

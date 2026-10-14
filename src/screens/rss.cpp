@@ -3,29 +3,72 @@
 #include <string>
 #include <array>
 #include <charconv>
+#include "pico/rand.h"
+
 
 Rss::Rss(DS1306& rtc, PCF8574& lcd):Screen(rtc, lcd){}
 
-
 bool Rss::check(){
-    return false;
+    if (authors.empty()||articles.empty()||unread==-1){return false;}
+    return true;
 }
 
 void Rss::setup(){
-
+    lcd.create_char(0,{0,0,0,0,0,0,21,0});
+    if (!check()){return;}
+    rand=get_rand_32()%articles.size();
 }
 
 void Rss::disconnect(){
-
-}
-
-void Rss::update(std::string& key){
-
+    authors.clear();
+    articles.clear();
+    unread=-1;
+    rand=-1;
 }
 
 void Rss::display(){
-
+    if (rand==-1){rand=0;}
+    std::array <uint,7> t = rtc.get_time();
+    lcd.create_char(1,{14,14-4*(t[5]%2),14,0,14,14-4*(t[5]%2),14,0});
+    std::string sndstr=center(padtwo(t[3])+"@1"+padtwo(t[4])+"@1"+padtwo(t[5])+" Unread: "+std::to_string(unread),' ',20);
+    sndstr+=center(authors[rand].size()<=20?authors[rand]:authors[rand].substr(0,19)+"@0",' ',20);
+    std::string tststr=articles[rand];
+    sndstr+=center(tststr.substr(0,20),' ',20);
+    tststr.erase(0,20);
+    sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+    lcd.lprint(sndstr);
 }
+
+void Rss::update(std::string& key){
+    if (key.substr(0,11)!="///RSSFD///"){return;}
+    key.erase(0,11);
+    std::string delim = "///SPLIT///";
+    std::string sub;
+    size_t pos;
+    int i=0;
+    authors.clear();
+    articles.clear();
+    unread=-1;
+    while ((pos=key.find(delim))!=std::string::npos){
+        sub=key.substr(0,pos);
+        if (i==0){
+            auto result=std::from_chars(sub.data(),sub.data()+sub.size(),unread);
+            if (result.ec!=std::errc()||result.ptr!=sub.data()+sub.size())
+                {disconnect();return;}
+        }
+        else if (i%2){
+            authors.push_back(sub);
+        }
+        else {
+            articles.push_back(sub);
+        }
+        key.erase(0,pos+delim.length());
+        i++;
+    }
+    if ((authors.size()!=articles.size())){disconnect();}
+}
+
+
 
 std::string Rss::pad(std::string m, uint l, char c){
     if (m.size()>=l){return m.substr(0,l);}

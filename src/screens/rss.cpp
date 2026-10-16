@@ -15,7 +15,6 @@ bool Rss::check(){
 
 void Rss::setup(){
     lcd.create_char(0,{0,0,0,0,0,0,21,0});
-    if (!check()){return;}
     rand=get_rand_32()%articles.size();
 }
 
@@ -27,16 +26,22 @@ void Rss::disconnect(){
 }
 
 void Rss::display(){
-    if (rand==-1){rand=0;}
     std::array <uint,7> t = rtc.get_time();
     lcd.create_char(1,{14,14-4*(t[5]%2),14,0,14,14-4*(t[5]%2),14,0});
-    std::string sndstr=center(padtwo(t[3])+"@1"+padtwo(t[4])+"@1"+padtwo(t[5])+" Unread: "+std::to_string(unread),' ',20);
-    sndstr+=center(authors[rand].size()<=20?authors[rand]:authors[rand].substr(0,19)+"@0",' ',20);
+    std::string first=center(padtwo(t[3])+"@1"+padtwo(t[4])+"@1"+padtwo(t[5])+" Unread: "+std::to_string(unread),' ',20);
+    std::string second=center(authors[rand].size()<=20?authors[rand]:authors[rand].substr(0,19)+"@0",' ',20);
     std::string tststr=articles[rand];
-    sndstr+=center(tststr.substr(0,20),' ',20);
+    std::string third=center(tststr.substr(0,20),' ',20);
     tststr.erase(0,20);
-    sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
-    lcd.lprint(sndstr);
+    std::string fourth=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+    lcd.pos(0,0);
+    lcd.lprint(center(aposfix(first),' ',20));
+    lcd.pos(1,0);
+    lcd.lprint(center(aposfix(second),' ',20));
+    lcd.pos(2,0);
+    lcd.lprint(center(aposfix(third),' ',20));
+    lcd.pos(3,0);
+    lcd.lprint(center(aposfix(fourth),' ',20));
 }
 
 void Rss::update(std::string& key){
@@ -68,7 +73,24 @@ void Rss::update(std::string& key){
     if ((authors.size()!=articles.size())){disconnect();}
 }
 
-
+std::string Rss::aposfix(std::string s){
+    for (size_t pos = 0; (pos = s.find("’", pos)) != std::string::npos; pos++) {
+        s.replace(pos, 3, "'");
+    }
+    for (size_t pos = 0; (pos = s.find("‘", pos)) != std::string::npos; pos++) {
+        s.replace(pos, 3, "'");
+    }
+    for (size_t pos = 0; (pos = s.find("“", pos)) != std::string::npos; pos++) {
+        s.replace(pos, 3, "\"");
+    }
+    for (size_t pos = 0; (pos = s.find("”", pos)) != std::string::npos; pos++) {
+        s.replace(pos, 3, "\"");
+    }
+    for (size_t pos = 0; (pos = s.find("–", pos)) != std::string::npos; pos++) {
+        s.replace(pos, 3, "-");
+    }
+    return s;
+}
 
 std::string Rss::pad(std::string m, uint l, char c){
     if (m.size()>=l){return m.substr(0,l);}

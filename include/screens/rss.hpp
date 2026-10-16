@@ -13,6 +13,7 @@ private:
     std::string pad(std::string m, uint l, char c=' ');
     std::string padtwo(int num);
     std::string center(const std::string& s, const char c=' ', uint n=20);
+    std::string aposfix(std::string s);
 
 public:
     Rss(DS1306& rtc, PCF8574& lcd);

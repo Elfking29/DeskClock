@@ -28,20 +28,15 @@ void Rss::disconnect(){
 void Rss::display(){
     std::array <uint,7> t = rtc.get_time();
     lcd.create_char(1,{14,14-4*(t[5]%2),14,0,14,14-4*(t[5]%2),14,0});
-    std::string first=center(padtwo(t[3])+"@1"+padtwo(t[4])+"@1"+padtwo(t[5])+" Unread: "+std::to_string(unread),' ',20);
-    std::string second=center(authors[rand].size()<=20?authors[rand]:authors[rand].substr(0,19)+"@0",' ',20);
-    std::string tststr=articles[rand];
-    std::string third=center(tststr.substr(0,20),' ',20);
+    std::string sndstr=center(padtwo(t[3])+"@1"+padtwo(t[4])+"@1"+padtwo(t[5])+" Unread: "+std::to_string(unread),' ',20);
+    std::string tststr=aposfix(authors[rand]);
+    sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+    tststr=aposfix(articles[rand]);
+    sndstr+=center(tststr.substr(0,20),' ',20);
     tststr.erase(0,20);
-    std::string fourth=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
-    lcd.pos(0,0);
-    lcd.lprint(center(aposfix(first),' ',20));
-    lcd.pos(1,0);
-    lcd.lprint(center(aposfix(second),' ',20));
-    lcd.pos(2,0);
-    lcd.lprint(center(aposfix(third),' ',20));
-    lcd.pos(3,0);
-    lcd.lprint(center(aposfix(fourth),' ',20));
+    sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+    lcd.home();
+    lcd.lprint(sndstr);
 }
 
 void Rss::update(std::string& key){

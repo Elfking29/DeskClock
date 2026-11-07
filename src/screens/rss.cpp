@@ -30,11 +30,14 @@ void Rss::display(){
     lcd.create_char(1,{14,14-4*(t[5]%2),14,0,14,14-4*(t[5]%2),14,0});
     std::string sndstr=center(padtwo(t[3])+"@1"+padtwo(t[4])+"@1"+padtwo(t[5])+" Unread: "+std::to_string(unread),' ',20);
     std::string tststr=aposfix(authors[rand]);
-    sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
-    tststr=aposfix(articles[rand]);
-    sndstr+=center(tststr.substr(0,20),' ',20);
-    tststr.erase(0,20);
-    sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+    if (unread!=0){
+        sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+        tststr=aposfix(articles[rand]);
+        sndstr+=center(tststr.substr(0,20),' ',20);
+        tststr.erase(0,20);
+        sndstr+=center(tststr.size()<=20?tststr:tststr.substr(0,19)+"@0",' ',20);
+    }
+    else {sndstr+=pad("",60,' ');}
     lcd.home();
     lcd.lprint(sndstr);
 }

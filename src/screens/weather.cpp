@@ -53,7 +53,7 @@ void Weather::display(){
     sndstr+="@3@4@5\xFF"+center(longcode(weather[2]),'\xFF',16);
     std::string tststr="T: "+std::to_string(weather[0])+"@6 H: "+std::to_string(weather[1])+"%";
     if (tststr.size()>15){tststr="T "+std::to_string(weather[0])+"@6 H "+std::to_string(weather[1])+"%";}
-    sndstr+=center(tststr,'\xFF',20);
+    sndstr+="\xFF\xFF\xFF\xFF"+center(tststr,'\xFF',16);
     tststr="1H: "+smallcode(weather[5])+" T: "+std::to_string(weather[3])+"@6 R: "+std::to_string(weather[4])+"%";
     if (tststr.size()>21){tststr="1H: "+smallcode(weather[5])+" T "+std::to_string(weather[3])+"@6 R "+std::to_string(weather[4])+"%";}
     sndstr+=center(tststr,'\xFF',20);
